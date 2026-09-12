@@ -122,14 +122,23 @@ export default function OnboardingWelcomeDialog({
     <Dialog.Root
       open={open}
       onOpenChange={(e) => {
-        if (!e.open) handleSkip();
+        if (!e.open && busy === null) handleSkip();
       }}
+      placement="center"
+      size="md"
+      closeOnInteractOutside={busy === null}
+      closeOnEscape={busy === null}
     >
       <Portal>
-        <Dialog.Backdrop />
+        <Dialog.Backdrop bg={glass.backdrop} />
         <Dialog.Positioner>
-          <Dialog.Content {...glass.dialog} maxW="440px" p="24px">
-            <VStack align="stretch" gap="16px">
+          <Dialog.Content
+            color="fg.default"
+            maxW="440px"
+            w="calc(100vw - 32px)"
+            p="24px"
+            {...glass.dialog}
+          >            <VStack align="stretch" gap="16px">
               <HStack gap="12px">
                 <QuackDuck size={40} />
                 <VStack align="start" gap="2px">
