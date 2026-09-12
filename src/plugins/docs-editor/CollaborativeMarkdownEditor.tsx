@@ -1,4 +1,4 @@
-import Editor, { type OnMount } from '@monaco-editor/react';
+import Editor, { type BeforeMount, type OnMount } from '@monaco-editor/react';
 import LoadingSkeleton from '@components/common/LoadingSkeleton';
 import { useColorMode } from '@contexts/ColorModeContext';
 import { Box } from '@chakra-ui/react';
@@ -22,6 +22,62 @@ type Props = {
   onMarkdownChange?: (value: string) => void;
   onScrollRatio?: (ratio: number) => void;
 };
+
+function registerMarkdownThemes(monaco: typeof Monaco) {
+  monaco.editor.defineTheme('c4-markdown-light', {
+    base: 'vs',
+    inherit: true,
+    rules: [
+      { token: 'keyword', foreground: '0550AE', fontStyle: 'bold' },
+      { token: 'keyword.md', foreground: '0550AE', fontStyle: 'bold' },
+      { token: 'strong', foreground: '0A3069', fontStyle: 'bold' },
+      { token: 'strong.md', foreground: '0A3069', fontStyle: 'bold' },
+      { token: 'emphasis', foreground: '24292F', fontStyle: 'italic' },
+      { token: 'emphasis.md', foreground: '24292F', fontStyle: 'italic' },
+      { token: 'string', foreground: '0A3069' },
+      { token: 'string.md', foreground: '0A3069' },
+      { token: 'variable', foreground: '953800' },
+      { token: 'variable.md', foreground: '953800' },
+      { token: 'comment', foreground: '6E7781' },
+      { token: 'comment.md', foreground: '6E7781' },
+      { token: 'constant', foreground: '0550AE' },
+      { token: 'constant.md', foreground: '0550AE' },
+      { token: 'tag', foreground: '116329' },
+      { token: 'tag.md', foreground: '116329' },
+    ],
+    colors: {
+      'editor.background': '#ffffff00',
+      'editor.lineHighlightBackground': '#00000008',
+    },
+  });
+
+  monaco.editor.defineTheme('c4-markdown-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: 'keyword', foreground: '79C0FF', fontStyle: 'bold' },
+      { token: 'keyword.md', foreground: '79C0FF', fontStyle: 'bold' },
+      { token: 'strong', foreground: 'E6EDF3', fontStyle: 'bold' },
+      { token: 'strong.md', foreground: 'E6EDF3', fontStyle: 'bold' },
+      { token: 'emphasis', foreground: 'C9D1D9', fontStyle: 'italic' },
+      { token: 'emphasis.md', foreground: 'C9D1D9', fontStyle: 'italic' },
+      { token: 'string', foreground: 'A5D6FF' },
+      { token: 'string.md', foreground: 'A5D6FF' },
+      { token: 'variable', foreground: 'FFA657' },
+      { token: 'variable.md', foreground: 'FFA657' },
+      { token: 'comment', foreground: '8B949E' },
+      { token: 'comment.md', foreground: '8B949E' },
+      { token: 'constant', foreground: '79C0FF' },
+      { token: 'constant.md', foreground: '79C0FF' },
+      { token: 'tag', foreground: '7EE787' },
+      { token: 'tag.md', foreground: '7EE787' },
+    ],
+    colors: {
+      'editor.background': '#00000000',
+      'editor.lineHighlightBackground': '#ffffff0a',
+    },
+  });
+}
 
 function applyEditorScrollRatio(editor: Monaco.editor.IStandaloneCodeEditor, ratio: number) {
   const scrollHeight = editor.getScrollHeight();
@@ -102,9 +158,21 @@ const CollaborativeMarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
       applyingRef.current = false;
     }, [value]);
 
+    useEffect(() => {
+      const monaco = monacoRef.current;
+      if (!monaco) return;
+      monaco.editor.setTheme(themeName);
+    }, [themeName]);
+
+    const handleBeforeMount: BeforeMount = (monaco) => {
+      monacoRef.current = monaco;
+      registerMarkdownThemes(monaco);
+    };
+
     const handleMount: OnMount = (editor, monaco) => {
       editorRef.current = editor;
       monacoRef.current = monaco;
+      monaco.editor.setTheme(themeName);
 
       editor.onDidChangeModelContent(() => {
         if (applyingRef.current || readOnly) return;
@@ -138,6 +206,7 @@ const CollaborativeMarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
             fontSize: 13,
             padding: { top: 8, bottom: 8 },
           }}
+          beforeMount={handleBeforeMount}
           onMount={handleMount}
         />
       </Box>
