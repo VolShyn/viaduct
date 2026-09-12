@@ -179,6 +179,25 @@ export default function ServiceCatalogPage({
   }, [embedded, initialSelectedId]);
 
   const groups = useMemo(() => groupContainersBySystem(model), [model]);
+
+  /* Open every category that has services — a folded "Services 7" looks empty. */
+  useEffect(() => {
+    if (groups.length === 0) return;
+    setExpandedCategories((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      for (const { system, categories } of groups) {
+        for (const { category } of categories) {
+          const key = `${system.id}:${category}`;
+          if (!next.has(key)) {
+            next.add(key);
+            changed = true;
+          }
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [groups]);
   const hits = useMemo(
     () => (query.trim() ? searchCatalogElements(model, query) : []),
     [model, query]

@@ -1,5 +1,7 @@
 /**
  * Community: catalog / flows run against the in-browser flat store.
+ * Cloud project hydrate is a no-op — `ServiceCatalogPage` / `DataFlowsPage`
+ * already read the model from `useFlatC4Store`.
  */
 export function useCatalogProject(_options?: {
   enabled?: boolean;
@@ -14,18 +16,13 @@ export function useCatalogProject(_options?: {
   [key: string]: unknown;
 }) {
   return {
-    projectId: null as string | null,
     projectName: null as string | null,
     loading: false,
     loadError: null as string | null,
-    error: null as string | null,
     access: 'owner' as 'owner' | 'edit' | 'view',
-    signInRequired: false,
-    isLocal: true,
     canWrite: true,
     handleRenameProject: async (_name: string) => {},
-    model: null,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setModel: (_m: any) => {},
+    projectStale: false,
+    refetch: async () => undefined,
   };
 }
