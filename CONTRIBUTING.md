@@ -8,7 +8,7 @@ This repository is the **Community** edition: single-user / local browser editor
 
 Cloud-only features (collaboration, hosted MCP, change sets, cross-project
 domains, org sharing, webhooks, AI metering) live in a private product line and
-are out of scope here. See [docs/vs-cloud.md](docs/vs-cloud.md).
+are out of scope here. See the Community vs Cloud section in [README.md](README.md).
 
 ## Setup
 

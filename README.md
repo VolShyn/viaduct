@@ -5,7 +5,7 @@
 
 **Viaduct** by [Quiet Grid Labs](https://quietgridlabs.com) — design, explore, and document architecture with the [C4 model](https://c4model.com/), Magic flows, docs, and contracts. Runs locally in the browser. No account.
 
-Hosted team product (collab, MCP, change sets): **[Viaduct Cloud](https://c4.quietgridlabs.com)** · [Community vs Cloud](docs/vs-cloud.md)
+Hosted team product (collab, MCP, change sets): **[Viaduct Cloud](https://c4.quietgridlabs.com)**
 
 > Not a fork of `archivisio/c4_modelizer`. This is the Quiet Grid Labs Community edition.
 
@@ -48,8 +48,6 @@ Then open http://localhost:8080
 | Hosted MCP + tokens | | ✓ |
 | Change sets / agent handoff | | ✓ |
 | Cross-project domains | | ✓ |
-
-Details: [docs/vs-cloud.md](docs/vs-cloud.md)
 
 ## Scripts
 
