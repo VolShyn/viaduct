@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Workspace surfaces are per-user and carry no content worth indexing. They also
+# render only after sign-in, so a crawler would archive an empty shell.
+Disallow: /projects/
+Disallow: /catalog
+Disallow: /flows
+Disallow: /s/
+
+Host: https://c4.quietgridlabs.com
+Sitemap: https://c4.quietgridlabs.com/sitemap.xml
