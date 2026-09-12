@@ -17,14 +17,8 @@ import { useFlatActiveElements, useFlatC4Store, useFlatNavigation } from '@archi
 import { runLevelChange } from '@/state/levelTransition';
 import { isBrokerView } from '@utils/brokerTech';
 import { isDatabaseSchemaView } from '@utils/databaseTech';
-import {
-  closeProjectsOverlay,
-  getProjectsOverlay,
-  openProjectsOverlay,
-  subscribeProjectsOverlay,
-} from '@/state/projectsOverlay';
 import { Box, HStack } from '@chakra-ui/react';
-import { ArrowLeft, ArrowRight, FolderOpen, Home } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Home } from 'lucide-react';
 import {
   getDocumentationEditorSession,
   subscribeDocumentationEditor,
@@ -99,11 +93,6 @@ export default function WorkspaceNavPill({
      guest pressing home left the editor and did not come back. */
   const editorPath = editorPathFor(projectMode, projectId);
 
-  /* The folder opens the projects manager — the same surface the folder in
-     the toolbar and the landing after sign-in open. There used to be a second
-     projects panel behind this button, which meant two answers to "where are
-     my projects". */
-  const projectsOpen = useSyncExternalStore(subscribeProjectsOverlay, getProjectsOverlay, getProjectsOverlay);
   const [draftName, setDraftName] = useState(projectName || '');
   useEffect(() => {
     setDraftName(projectName || '');
@@ -318,25 +307,6 @@ export default function WorkspaceNavPill({
           disabled={!canForward}
         >
           <ArrowRight size={TOOLBAR_ICON_SIZE} />
-        </ToolbarIconButton>
-
-        <ToolbarIconButton
-          aria-label={t('navigator_title')}
-          title={t('navigator_title')}
-          onClick={() => {
-            /* Open first, then clear the others — leave used to close projects
-               before toggle flipped it back on, so the shell waited on every
-               other surface to tear down before painting. */
-            if (projectsOpen) {
-              closeProjectsOverlay();
-              return;
-            }
-            openProjectsOverlay();
-            leaveWorkspaceOverlays({ keepProjects: true });
-          }}
-          active={projectsOpen}
-        >
-          <FolderOpen size={TOOLBAR_ICON_SIZE} />
         </ToolbarIconButton>
 
         <InstrumentsMenu />
