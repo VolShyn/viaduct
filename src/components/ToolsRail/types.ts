@@ -7,7 +7,6 @@ export type ToolsRailProps = {
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   model?: FlatC4Model;
   importLoading?: boolean;
-  onShare?: () => void;
   /** Drawn only for the owner of a saved project — see EditorWorkspace. */
   onWebhooks?: () => void;
   viewOnly?: boolean;

@@ -8,7 +8,7 @@ import {
   useFlatNavigation,
   useFlatStore,
 } from '@archivisio/c4-modelizer-sdk';
-import { hasGitlabIdentity, isGuestUser, loginPagePath } from '@shared/api';
+import { isGuestUser, loginPagePath } from '@shared/api';
 import { forgetEndpointOperation } from '@utils/serviceContract';
 import { useProjectsQuery } from '@features/projects';
 import { useSnapshotsQuery } from '@features/versions';
@@ -29,7 +29,6 @@ import OnboardingTipsTour, {
 } from '@components/OnboardingTipsTour';
 import { buildStarterModel } from '@/data/templates/starterModel';
 import SearchNodeBar from '@components/SearchNodeBar';
-import ShareDialog from '@components/ShareDialog';
 import {
   closeProjectsOverlay,
   getProjectsOverlay,
@@ -107,10 +106,6 @@ import {
   getDomainsOverlay,
   subscribeDomainsOverlay,
 } from '@features/domains';
-import {
-  getDesignSystemsOverlay,
-  subscribeDesignSystemsOverlay,
-} from '@/state/designSystemsOverlay';
 import { subscribeWorkspaceNotice } from '@/state/workspaceNotice';
 import {
   buildTraceFromContainerEdge,
@@ -183,7 +178,7 @@ function EditorWorkspace({ projectMode = false, initialOverlay = null }: EditorW
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, loading: authLoading, offline, logout, refresh } = useAuth();
+  const { user, loading: authLoading, offline, logout } = useAuth();
   const signedIn = Boolean(user && !isGuestUser(user));
   const projectListQuery = useProjectsQuery(signedIn);
   /* Versions — and the change sets that stand on them — belong to people with
@@ -227,9 +222,7 @@ function EditorWorkspace({ projectMode = false, initialOverlay = null }: EditorW
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [tipsTourOpen, setTipsTourOpen] = useState(false);
   const [pendingProjectsOpen, setPendingProjectsOpen] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
   const [webhooksOpen, setWebhooksOpen] = useState(false);
-  const [pendingShareUrl, setPendingShareUrl] = useState<string | null>(null);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
@@ -250,14 +243,6 @@ function EditorWorkspace({ projectMode = false, initialOverlay = null }: EditorW
       setPendingProjectsOpen(true);
     }
   }, [searchParams, setSearchParams]);
-
-  useEffect(() => {
-    const st = location.state as { shareUrl?: string } | null;
-    if (!st?.shareUrl) return;
-    setPendingShareUrl(st.shareUrl);
-    setShareOpen(true);
-    navigate(location.pathname, { replace: true, state: null });
-  }, [location.state, location.pathname, navigate]);
 
   useEffect(() => {
     ensureNavTrailRoot();
@@ -593,10 +578,6 @@ function EditorWorkspace({ projectMode = false, initialOverlay = null }: EditorW
   const canvasLocked = viewOnly || duckHopActive;
 
   const canImport = !projectMode || access === 'owner';
-  /* Sharing is about who may open the project, not whether its trunk takes
-     edits: a protected project is exactly the one a team works on through
-     branches, so it is the one that most needs members. */
-  const canShare = !projectMode || (access === 'owner' && !viewingVersion);
   /* A webhook sends this project's changes to an address of someone's
      choosing, which is the owner's call — and there is nothing to send from a
      model that lives in this browser. */
@@ -739,11 +720,6 @@ function EditorWorkspace({ projectMode = false, initialOverlay = null }: EditorW
   const domainsOverlay = useSyncExternalStore(
     subscribeDomainsOverlay,
     getDomainsOverlay,
-    () => null
-  );
-  const designSystemsOverlay = useSyncExternalStore(
-    subscribeDesignSystemsOverlay,
-    getDesignSystemsOverlay,
     () => null
   );
   const dataFlowSidebarOpen = useSyncExternalStore(
@@ -1512,10 +1488,6 @@ function EditorWorkspace({ projectMode = false, initialOverlay = null }: EditorW
     setLogoutConfirmOpen(true);
   }, []);
 
-  const handleShareClick = useCallback(() => {
-    setShareOpen(true);
-  }, []);
-
   const canvasHighlightEdge = useMemo(() => {
     if (connectionDialogOpen && editingConnection) {
       return {
@@ -1616,31 +1588,6 @@ function EditorWorkspace({ projectMode = false, initialOverlay = null }: EditorW
             onClose={() => setWebhooksOpen(false)}
           />
         )}
-        {canShare && (
-          <ShareDialog
-            open={shareOpen}
-            projectId={projectId}
-            /* Groups are GitLab's, so only a GitLab account can pick one.
-               Everyone else shares by link — which reaches further anyway,
-               being the path built for people outside the organisation. */
-            linkOnly={!hasGitlabIdentity(user)}
-            model={model}
-            projectName={projectName}
-            initialUrl={pendingShareUrl}
-            onClose={() => {
-              setShareOpen(false);
-              setPendingShareUrl(null);
-            }}
-            onPublished={({ projectId: id, shareLink }: { projectId: string; shareLink: { url: string } }) => {
-              void refresh().then(() => {
-                navigate(`/projects/${id}`, {
-                  replace: true,
-                  state: { shareUrl: shareLink.url },
-                });
-              });
-            }}
-          />
-        )}
         <EditorConfirmDialogs
           logoutConfirmOpen={logoutConfirmOpen}
           logoutLoading={logoutLoading}
@@ -1678,7 +1625,6 @@ function EditorWorkspace({ projectMode = false, initialOverlay = null }: EditorW
             onLogin={handleLogin}
             onLogout={handleLogoutClick}
             onRenameProject={projectMode && canWrite ? handleRenameProject : undefined}
-            onShare={canShare ? handleShareClick : undefined}
             onWebhooks={canConfigureWebhooks ? () => setWebhooksOpen(true) : undefined}
             viewOnly={viewOnly}
             readOnly={canvasLocked}
@@ -1767,7 +1713,6 @@ function EditorWorkspace({ projectMode = false, initialOverlay = null }: EditorW
             compareOverlay={compareOverlay}
             changeSetsOverlay={changeSetsOverlay}
             domainsOverlay={domainsOverlay}
-            designSystemsOverlay={designSystemsOverlay}
             dataFlowManager={dataFlowManager}
           />
         <AppFooter variant="bar" />

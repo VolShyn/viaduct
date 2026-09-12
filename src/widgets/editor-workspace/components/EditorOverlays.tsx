@@ -1,8 +1,6 @@
-import DesignSystemsPage from '@/pages/DesignSystemsPage';
 import DataFlowsPage from '@/pages/DataFlowsPage';
 import ServiceCatalogPage from '@/pages/ServiceCatalogPage';
 import { closeCatalogOverlay } from '@plugins/service-catalog/uiState';
-import { closeDesignSystemsOverlay } from '@/state/designSystemsOverlay';
 import { closeDataFlowManager } from '@plugins/data-flows/uiState';
 import {
   APP_FOOTER_OFFSET,
@@ -55,16 +53,13 @@ type Props = {
   branchesOverlay: { selectedId?: string | null } | null;
   compareOverlay: CompareOverlaySession;
   domainsOverlay: { selectedId?: string | null } | null;
-  designSystemsOverlay: { selectedName?: string | null } | null;
   dataFlowManager: { flowId?: string | null; stepId?: string | null } | null;
 };
 
 export default function EditorOverlays({
   projectMode,
-  projectId,
   viewOnly,
   catalogOverlay,
-  designSystemsOverlay,
   dataFlowManager,
 }: Props) {
   return (
@@ -76,17 +71,6 @@ export default function EditorOverlays({
             embedded
             initialSelectedId={catalogOverlay.selectedId ?? null}
             onRequestClose={() => closeCatalogOverlay()}
-          />
-        </OverlayFrame>
-      ) : null}
-
-      {designSystemsOverlay ? (
-        <OverlayFrame>
-          <DesignSystemsPage
-            initialSelectedName={designSystemsOverlay.selectedName ?? null}
-            canWrite={projectMode ? !viewOnly : true}
-            projectId={projectId}
-            onRequestClose={() => closeDesignSystemsOverlay()}
           />
         </OverlayFrame>
       ) : null}

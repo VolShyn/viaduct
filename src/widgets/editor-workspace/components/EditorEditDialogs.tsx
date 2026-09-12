@@ -246,13 +246,7 @@ export default function EditorEditDialogs({
           availableGroups={modelGroupCatalog}
           initialDomainId={getElementDomainId(editingElement)}
           availableDomains={containerDomains}
-          designAvailable={
-            designToolsAllowed &&
-            containerTakesDesign(
-              editingElement as { technology?: string } & UiExtras,
-              model.components.filter((c) => c.containerId === editingElement.id)
-            )
-          }
+          designAvailable={false}
           initialDesignSystem={(editingElement as UiExtras).designSystem || ''}
           availableDesignSystems={designSystemCatalog}
           audit={editingElement as AuditExtras}

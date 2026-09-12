@@ -10,9 +10,10 @@ import {
   CANVAS_CHROME_Z,
   workspaceChromeRowCss,
 } from '@theme/sidePanelLayout';
-import { Moon, BookOpen, Heart, Sun } from 'lucide-react';
+import { Moon, BookOpen, Heart, Settings, Sun } from 'lucide-react';
 import { Box, Button, HStack, Text } from '@chakra-ui/react';
 import NavDuck from '@components/NavDuck';
+import SettingsDialog from '@components/settings';
 import { leaveWorkspaceOverlays } from '@/navigation/leaveWorkspaceOverlays';
 import PortalTarget from '@slots/PortalTarget';
 import { memo, useState } from 'react';
@@ -31,7 +32,6 @@ const Toolbar = memo(
     projectMode = false,
     importLoading = false,
     onRenameProject,
-    onShare,
     onWebhooks,
     viewOnly = false,
     readOnly = false,
@@ -46,6 +46,7 @@ const Toolbar = memo(
     const { mode, toggleColorMode } = useColorMode();
     const glass = useGlassSurface();
     const [donateOpen, setDonateOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
 
     const chromePos = onCanvas ? 'absolute' : 'fixed';
 
@@ -159,6 +160,16 @@ const Toolbar = memo(
                   )}
                 </ToolbarIconButton>
 
+                <ToolbarIconButton
+                  data-testid="toolbar-settings"
+                  data-tour="settings"
+                  onClick={() => setSettingsOpen(true)}
+                  aria-label="Settings"
+                  title="Settings"
+                >
+                  <Settings size={TOOLBAR_ICON_SIZE} />
+                </ToolbarIconButton>
+
               </HStack>
             </HStack>
           </HStack>
@@ -187,7 +198,6 @@ const Toolbar = memo(
             onImport={onImport}
             model={model}
             importLoading={importLoading}
-            onShare={onShare}
             onWebhooks={onWebhooks}
             viewOnly={viewOnly}
             readOnly={readOnly}
@@ -198,6 +208,7 @@ const Toolbar = memo(
         ) : null}
 
         <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)} />
+        <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       </>
     );
   }

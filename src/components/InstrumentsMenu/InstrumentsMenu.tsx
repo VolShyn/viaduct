@@ -14,12 +14,6 @@ import {
   subscribeCatalogOverlay,
 } from '@plugins/service-catalog/uiState';
 import {
-  closeDesignSystemsOverlay,
-  getDesignSystemsOverlay,
-  openDesignSystemsOverlay,
-  subscribeDesignSystemsOverlay,
-} from '@/state/designSystemsOverlay';
-import {
   getDocumentationContext,
   getDocumentationEditorSession,
   isDocumentationEditorVisible,
@@ -39,7 +33,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CANVAS_CHROME_Z } from '@theme/sidePanelLayout';
-import { ChevronDown, FileText, GitBranch, Layers, Palette, Route, Wrench } from 'lucide-react';
+import { ChevronDown, FileText, GitBranch, Layers, Route, Wrench } from 'lucide-react';
 import { Box, Button, HStack, Portal, Text } from '@chakra-ui/react';
 import InstrumentsMenuRow from './InstrumentsMenuRow';
 import {
@@ -66,11 +60,6 @@ export default function InstrumentsMenu() {
   const [dropRect, setDropRect] = useState<DOMRect | null>(null);
 
   const catalogOverlay = useSyncExternalStore(subscribeCatalogOverlay, getCatalogOverlay, () => null);
-  const designSystemsOverlay = useSyncExternalStore(
-    subscribeDesignSystemsOverlay,
-    getDesignSystemsOverlay,
-    () => null
-  );
   const flowManager = useSyncExternalStore(subscribeDataFlowPlayback, getDataFlowManager, () => null);
   const docsVisible = useSyncExternalStore(
     subscribeDocumentationEditor,
@@ -98,10 +87,8 @@ export default function InstrumentsMenu() {
   );
 
   const onCatalog = Boolean(catalogOverlay);
-  const onDesignSystems = Boolean(designSystemsOverlay);
   const onFlows = Boolean(flowManager);
   const returnTo = `${location.pathname}${location.search}`;
-  const designSystemsAvailable = true;
 
   useEffect(() => {
     if (!open) return;
@@ -199,16 +186,6 @@ export default function InstrumentsMenu() {
     setOpen(false);
   }, [onCatalog, returnTo]);
 
-  const handleDesignSystems = useCallback(() => {
-    if (onDesignSystems) {
-      closeDesignSystemsOverlay();
-    } else {
-      leaveWorkspaceOverlays();
-      openDesignSystemsOverlay();
-    }
-    setOpen(false);
-  }, [onDesignSystems]);
-
   const items: InstrumentsMenuItem[] = [
     {
       key: 'docs',
@@ -242,17 +219,6 @@ export default function InstrumentsMenu() {
       active: onCatalog,
       onClick: handleCatalog,
     },
-    ...(designSystemsAvailable
-      ? [
-          {
-            key: 'design-systems',
-            icon: <Palette size={INSTRUMENTS_ITEM_ICON_SIZE} />,
-            label: t('design_systems_title'),
-            active: onDesignSystems,
-            onClick: handleDesignSystems,
-          },
-        ]
-      : []),
   ];
 
   const hasActive = items.some((i) => i.active);

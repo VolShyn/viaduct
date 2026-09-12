@@ -16,7 +16,6 @@ export type ToolbarProps = {
   onLogin?: () => void;
   onLogout?: () => void;
   onRenameProject?: (name: string) => void | Promise<void>;
-  onShare?: () => void;
   onWebhooks?: () => void;
   viewOnly?: boolean;
   readOnly?: boolean;

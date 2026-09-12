@@ -8,7 +8,7 @@ import PortalTarget from '@slots/PortalTarget';
 import { Input, Menu, Portal, VStack } from '@chakra-ui/react';
 import QuackSpinner from '@components/QuackSpinner';
 import GlassMenuContent from '@components/common/GlassMenuContent';
-import { Download, Plus, Share2, Upload, Webhook } from 'lucide-react';
+import { Download, Plus, Upload, Webhook } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useColorMode } from '@contexts/ColorModeContext';
@@ -30,7 +30,6 @@ export default function ToolsRail({
   onImport,
   model: modelProp,
   importLoading = false,
-  onShare,
   onWebhooks,
   viewOnly,
   readOnly,
@@ -195,23 +194,6 @@ export default function ToolsRail({
         display="none"
         onChange={onImport}
       />
-
-      {/* Not tied to the canvas lock: `onShare` already says whether this
-          person may share, and a protected project is locked precisely
-          because a team edits it through branches — the one that most needs
-          sharing. */}
-      {onShare && (
-        <ToolbarIconButton
-          data-testid="toolbar-share"
-          onClick={onShare}
-          aria-label="Share"
-          title="Share"
-          mr="0"
-          tooltipPlacement="right"
-        >
-          <Share2 size={TOOLBAR_ICON_SIZE} />
-        </ToolbarIconButton>
-      )}
 
       {onWebhooks && (
         <ToolbarIconButton
