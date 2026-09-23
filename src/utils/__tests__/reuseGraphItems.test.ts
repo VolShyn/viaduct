@@ -81,4 +81,16 @@ describe('reuseRfEdges', () => {
     expect(out[0]).not.toBe(prev[0]);
     expect(out[0].data).toEqual({ bidirectional: true });
   });
+
+  it('replaces an edge when an end moves to another handle', () => {
+    const prev: Edge[] = [
+      { id: 'e1', source: 'a', target: 'b', sourceHandle: 'source-right-0', targetHandle: 'target-left-0' },
+    ];
+    const next: Edge[] = [
+      { id: 'e1', source: 'a', target: 'b', sourceHandle: 'source-right-0', targetHandle: 'target-right-3' },
+    ];
+    const out = reuseRfEdges(prev, next);
+    expect(out[0]).not.toBe(prev[0]);
+    expect(out[0].targetHandle).toBe('target-right-3');
+  });
 });

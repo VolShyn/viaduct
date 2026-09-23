@@ -122,6 +122,7 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
     removeComponent,
     removeCodeElement,
     removeConnection,
+    updateConnection,
   } = useFlatC4Store();
   /* Where on the C4 tree the canvas is currently looking — needed to decide
      which ghosts belong on THIS screen. A container removed from system A
@@ -144,6 +145,9 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
   const { t } = useTranslation();
   const localDraggingIdsRef = useRef<Set<string>>(new Set());
   const selectedIdsRef = useRef<string[]>([]);
+  /* the arrow whose end is being dragged; RF fires onConnectEnd before
+     onReconnectEnd, so the drop still sees it set */
+  const reconnectingRef = useRef<Edge | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{
     nodes: Node[];
     edges: Edge[];
@@ -688,12 +692,32 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
      ends quietly for them instead of offering a search that cannot work. */
   const handleConnectEnd = useCallback(
     (event: MouseEvent | TouchEvent, connectionState: FinalConnectionState) => {
-      if (canvasReadOnly || guestSession || isDuckHopActive()) return;
+      if (canvasReadOnly || guestSession || isDuckHopActive() || reconnectingRef.current) return;
       if (connectionState.fromNode && !connectionState.toNode) {
         setPendingConnection({ event, connectionState });
       }
     },
     [canvasReadOnly, guestSession, setPendingConnection]
+  );
+
+  const handleReconnectStart = useCallback((_: React.MouseEvent, edge: Edge) => {
+    reconnectingRef.current = edge;
+  }, []);
+
+  const handleReconnectEnd = useCallback(() => {
+    reconnectingRef.current = null;
+  }, []);
+
+  // only the attachment side moves; isValidConnection keeps both cards the same
+  const handleReconnect = useCallback(
+    (oldEdge: Edge, connection: Connection) => {
+      if (isDuckHopActive()) return;
+      updateConnection(viewLevel, oldEdge.source, oldEdge.target, {
+        sourceHandle: connection.sourceHandle,
+        targetHandle: connection.targetHandle,
+      });
+    },
+    [updateConnection, viewLevel]
   );
 
   const blockContextMenu = useCallback((event: React.MouseEvent) => event.preventDefault(), []);
@@ -749,6 +773,14 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
     (connectionState: Edge | Connection) => {
       if (connectionState.source === connectionState.target) {
         return false;
+      }
+
+      // a moved end may land on another side of the same card, not on another card
+      const moving = reconnectingRef.current;
+      if (moving) {
+        return (
+          connectionState.source === moving.source && connectionState.target === moving.target
+        );
       }
 
       const sourceNode = getBlockById(connectionState.source);
@@ -864,6 +896,9 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
           onBeforeDelete={canDelete ? handleBeforeDelete : undefined}
           isValidConnection={isValidConnection}
           onConnectEnd={handleConnectEnd}
+          onReconnect={editLocked ? undefined : handleReconnect}
+          onReconnectStart={handleReconnectStart}
+          onReconnectEnd={handleReconnectEnd}
         >
           <Background
             variant={BackgroundVariant.Dots}

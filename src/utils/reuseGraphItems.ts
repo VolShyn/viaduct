@@ -46,6 +46,8 @@ function edgeVisualKey(edge: Edge): string {
     edge.id,
     edge.source,
     edge.target,
+    edge.sourceHandle,
+    edge.targetHandle,
     edge.type,
     edge.label,
     d?.pathType,
