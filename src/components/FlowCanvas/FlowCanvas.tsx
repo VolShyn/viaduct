@@ -56,7 +56,7 @@ import ConfirmDialog from "@components/common/ConfirmDialog";
 import { Box, HStack } from "@chakra-ui/react";
 import CanvasZoomBar from "@components/common/CanvasZoomBar";
 import { registerFlowInstance, unregisterFlowInstance } from "@utils/flowViewport";
-import { buildGroupFrameNodes } from "@utils/elementGroups";
+import { buildGroupFrameNodes, moveGroupFrame } from "@utils/elementGroups";
 import { isGroupFrameNodeId } from "@/types/c4Extensions";
 import type { FinalConnectionState, OnSelectionChangeParams } from "@xyflow/react";
 import ClearConnectionTracePanel from "./ClearConnectionTracePanel";
@@ -290,6 +290,10 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
   );
 
   const [internalNodes, setInternalNodes] = useState<Node[]>(nodes);
+  const internalNodesRef = useRef(internalNodes);
+  useEffect(() => {
+    internalNodesRef.current = internalNodes;
+  }, [internalNodes]);
 
   const { mergeWithRemoteDrags } = useRemoteNodeDrags(
     awareness,
@@ -337,31 +341,45 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
   }, [nodes, mergeWithRemoteDrags]);
 
   const handleNodesChange = useCallback((changes: NodeChange[]) => {
-    const next = changes.filter((c) => !('id' in c) || !isGroupFrameNodeId(String(c.id)));
-    if (!next.length) return;
-    setInternalNodes((nds) => applyNodeChanges(next, nds));
+    setInternalNodes((nds) => {
+      // a dragged frame moves its members instead of itself
+      const next = changes.flatMap((c): NodeChange[] => {
+        if (!('id' in c) || !isGroupFrameNodeId(c.id)) return [c];
+        if (c.type !== 'position' || !c.position) return [];
+        return moveGroupFrame(c.id, c.position, nds).map((m) => ({ ...c, ...m }));
+      });
+      return next.length ? applyNodeChanges(next, nds) : nds;
+    });
   }, []);
+
+  const withFramesAsMembers = useCallback(
+    (xs: Node[]) =>
+      xs.flatMap((n) =>
+        isGroupFrameNodeId(n.id) ? moveGroupFrame(n.id, n.position, internalNodesRef.current) : [n]
+      ),
+    []
+  );
 
   const handleNodeDrag = useCallback(
     (_: React.MouseEvent, node: Node, dragged: Node[]) => {
       if (!onNodeDragLive) return;
-      const list = dragged?.length ? dragged : [node];
+      const list = withFramesAsMembers(dragged?.length ? dragged : [node]);
       localDraggingIdsRef.current = new Set(list.map((n) => n.id));
       onNodeDragLive(list.map((n) => ({ id: n.id, position: n.position })));
     },
-    [onNodeDragLive]
+    [onNodeDragLive, withFramesAsMembers]
   );
 
   const handleNodeDragStop = useCallback(
     (_: React.MouseEvent, node: Node, dragged: Node[]) => {
-      const list = dragged?.length ? dragged : [node];
+      const list = withFramesAsMembers(dragged?.length ? dragged : [node]);
       localDraggingIdsRef.current = new Set();
       for (const n of list) {
         onNodePositionChange(n.id, n.position);
       }
       onNodeDragLiveEnd?.();
     },
-    [onNodePositionChange, onNodeDragLiveEnd]
+    [onNodePositionChange, onNodeDragLiveEnd, withFramesAsMembers]
   );
 
   const handleNodeDoubleClick = useCallback(

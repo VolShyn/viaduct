@@ -1,6 +1,6 @@
 import { getElementGroup, GROUP_NODE_PREFIX, isGroupFrameNodeId } from '@/types/c4Extensions';
 import { CANVAS_NODE_WIDTH } from '@theme/canvasSurfaces';
-import type { Node } from '@xyflow/react';
+import type { Node, XYPosition } from '@xyflow/react';
 
 const FALLBACK_W = CANVAS_NODE_WIDTH;
 const FALLBACK_H = 128;
@@ -57,9 +57,9 @@ export function buildGroupFrameNodes(nodes: Node[]): Node[] {
       width,
       height,
       style: { width, height, pointerEvents: 'none', background: 'transparent', border: 'none' },
-      className: 'nodrag nopan',
+      className: 'nopan',
+      dragHandle: '.group-frame-handle',
       data: { label, memberCount: members.length },
-      draggable: false,
       selectable: false,
       connectable: false,
       focusable: false,
@@ -68,4 +68,20 @@ export function buildGroupFrameNodes(nodes: Node[]): Node[] {
     });
   }
   return frames;
+}
+
+/** where the members land when their frame is put at `position`; the frame has no position of its own */
+export function moveGroupFrame(
+  frameId: string,
+  position: XYPosition,
+  nodes: Node[]
+): { id: string; position: XYPosition }[] {
+  const frame = buildGroupFrameNodes(nodes).find((f) => f.id === frameId);
+  if (!frame) return [];
+  const dx = position.x - frame.position.x;
+  const dy = position.y - frame.position.y;
+  const key = frameId.slice(GROUP_NODE_PREFIX.length);
+  return nodes
+    .filter((n) => !isGroupFrameNodeId(n.id) && getElementGroup(n.data).toLowerCase() === key)
+    .map((n) => ({ id: n.id, position: { x: n.position.x + dx, y: n.position.y + dy } }));
 }

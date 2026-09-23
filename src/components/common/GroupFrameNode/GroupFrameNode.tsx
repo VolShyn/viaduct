@@ -26,7 +26,11 @@ function GroupFrameNode({ data }: NodeProps<Node<GroupFrameData>>) {
       pointerEvents="none"
       position="relative"
     >
+      {/* the only grabbable part; the body stays canvas */}
       <Text
+        className="group-frame-handle"
+        pointerEvents="auto"
+        cursor="grab"
         position="absolute"
         top="10px"
         left="14px"
